@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define SCREEN_HEIGHT 900
 #define SCREEN_WIDTH 600
@@ -38,10 +39,10 @@
 #define SWAP(a, b) { int temp = a; a = b; b = temp; }
 
 typedef enum {
-    UP = 'k',
-    DOWN = 'j',
-    LEFT = 'h',
-    RIGHT = 'l'
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
 } Direction;
 
 typedef int Board[BOARD_ROWS][BOARD_COLS];

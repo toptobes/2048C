@@ -48,14 +48,27 @@ int main(void) {
         //-Draw the board--------------------------------------------------------------------------------------
         for (int r = 0; r < BOARD_ROWS; r++) {
             for (int c = 0; c < BOARD_COLS; c++) {
+                int x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING;
+                int y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING;
+
                 Rectangle tile = {
-                        OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING,
-                        OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING,
+                        x_offset,
+                        y_offset,
                         TILE_SIZE,
                         TILE_SIZE
                 };
                 Color color = getColor(board[r][c]);
                 DrawRectangleRounded(tile, .05f, 100, color);
+
+                int len = snprintf(NULL, 0, "%d", board[r][c]);
+                char *str = malloc(len + 1);
+                snprintf(str, len + 1, "%d", board[r][c]);
+
+                if (board[r][c] != 0) {
+                    DrawText(str, x_offset + TILE_SIZE / 2, y_offset + TILE_SIZE / 2, TILE_SIZE / 2, BLACK);
+                }
+
+                free(str);
             }
         }
         //-----------------------------------------------------------------------------------------------------
@@ -93,24 +106,33 @@ void updateBoard(Board board, Direction direction) {
 }
 
 int updateDirection(Direction *direction) {
-    Direction _direction;
+    int _direction;
     int changed = 0;
 
-    while ((_direction = GetCharPressed()) != 0) {
+    while ((_direction = GetKeyPressed()) != 0) {
+        printf("%d\n", _direction);
         switch (_direction) {
-            case 'k':
+            case KEY_W:
+            case KEY_K:
+            case KEY_UP:
                 *direction = UP;
                 changed++;
                 break;
-            case 'h':
+            case KEY_A:
+            case KEY_H:
+            case KEY_LEFT:
                 *direction = LEFT;
                 changed++;
                 break;
-            case 'j':
+            case KEY_S:
+            case KEY_J:
+            case KEY_DOWN:
                 *direction = DOWN;
                 changed++;
                 break;
-            case 'l':
+            case KEY_D:
+            case KEY_L:
+            case KEY_RIGHT:
                 *direction = RIGHT;
                 changed++;
                 break;
