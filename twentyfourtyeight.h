@@ -1,0 +1,55 @@
+#ifndef TWENTYFOURTYEIGHT_H
+#define TWENTYFOURTYEIGHT_H
+
+#include <malloc.h>
+#include <stdio.h>
+
+#define SCREEN_HEIGHT 900
+#define SCREEN_WIDTH 600
+
+#define TOP_PADDING (SCREEN_HEIGHT - SCREEN_WIDTH)
+
+#define OUTER_PADDING 20
+#define TILE_PADDING 10
+
+#define BOARD_ROWS 4
+#define BOARD_COLS 4
+
+#define TILE_SIZE ((SCREEN_WIDTH - 2 * OUTER_PADDING - (BOARD_COLS - 1) * TILE_PADDING) / (float) BOARD_COLS)
+
+#define BACKGROUND_COLOR ((Color) {187, 173, 160, 255})
+
+#define BLANK_TILE_COLOR ((Color) {207, 195, 184, 255})
+#define TWO_TILE_COLOR ((Color) {238, 228, 218, 255})
+#define FOUR_TILE_COLOR ((Color) {237, 224, 200, 255})
+#define EIGHT_TILE_COLOR ((Color) {242, 177, 121, 255})
+#define SIXTEEN_TILE_COLOR ((Color) {245, 149, 99, 255})
+#define THIRTYTWO_TILE_COLOR ((Color) {246, 124, 95, 255})
+#define SIXTYFOUR_TILE_COLOR ((Color) {246, 94, 59, 255})
+#define ONETWENTYEIGHT_TILE_COLOR ((Color) {237, 207, 114, 255})
+#define TWOFIFTYSIX_TILE_COLOR ((Color) {237, 204, 97, 255})
+#define FIVEONETWO_TILE_COLOR ((Color) {237, 200, 80, 255})
+#define TENTWENTYFOUR_TILE_COLOR ((Color) {237, 197, 63, 255})
+#define TWOFOURTYEIGHT_TILE_COLOR ((Color) {237, 194, 46, 255})
+#define UNDEFINED_TILE_COLOR ((Color) {35, 148, 62, 255})
+
+typedef enum {
+    UP = 'k',
+    DOWN = 'j',
+    LEFT = 'h',
+    RIGHT = 'l',
+    UNDEFINED = 0
+} Direction;
+
+typedef int Board[BOARD_ROWS][BOARD_COLS];
+
+int updateDirection(Direction *direction);
+
+Color getColor(int tile_value);
+
+void squashUp(Board board);
+void squashDown(Board board);
+void squashLeft(Board board);
+void squashRight(Board board);
+
+#endif // TWENTYFOURTYEIGHT_H
