@@ -1,8 +1,10 @@
 #ifndef TWENTYFOURTYEIGHT_H
 #define TWENTYFOURTYEIGHT_H
 
-#include <malloc.h>
+#include <mem.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define SCREEN_HEIGHT 900
 #define SCREEN_WIDTH 600
@@ -33,23 +35,35 @@
 #define TWOFOURTYEIGHT_TILE_COLOR ((Color) {237, 194, 46, 255})
 #define UNDEFINED_TILE_COLOR ((Color) {35, 148, 62, 255})
 
+#define SWAP(a, b) { int temp = a; a = b; b = temp; }
+
 typedef enum {
     UP = 'k',
     DOWN = 'j',
     LEFT = 'h',
-    RIGHT = 'l',
-    UNDEFINED = 0
+    RIGHT = 'l'
 } Direction;
 
 typedef int Board[BOARD_ROWS][BOARD_COLS];
 
 int updateDirection(Direction *direction);
+void updateBoard(Board board, Direction direction);
+
+void generateNTiles(Board board, int n);
+
+void squashUp(Board board);
+void dezerofyUp(Board board);
+
+void squashLeft(Board board);
+void dezerofyLeft(Board board);
+
+void flipBoardHorizontal(Board board);
+void flipBoardVertical(Board board);
+
+void squashDown(Board board);
+void squashRight(Board board);
 
 Color getColor(int tile_value);
 
-void squashUp(Board board);
-void squashDown(Board board);
-void squashLeft(Board board);
-void squashRight(Board board);
-
+void printBoard(Board board);
 #endif // TWENTYFOURTYEIGHT_H
