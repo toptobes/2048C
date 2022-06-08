@@ -85,7 +85,6 @@ int main(void) {
     return 0;
 }
 
-
 #pragma clang diagnostic pop
 
 void updateBoard(Board board, Direction direction) {
