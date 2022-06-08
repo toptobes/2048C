@@ -18,10 +18,10 @@ int main(void) {
         Direction direction = UP;
 
         Board board = {
-            {0, 0, 0, 0},
-            {0, 0, 0, 0},
-            {0, 0, 0, 0},
-            {0, 0, 0, 0}
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}
         };
 
         srand((unsigned) time(NULL));
@@ -40,37 +40,41 @@ int main(void) {
         BeginDrawing();
 
         //-Set the background----------------------------------------------------------------------------------
-        ClearBackground(BLANK);
-        Rectangle background_rect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-        DrawRectangleRounded(background_rect, .05f, 250, BACKGROUND_COLOR);
+            ClearBackground(BLANK);
+            Rectangle background_rect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+            DrawRectangleRounded(background_rect, .05f, 250, BACKGROUND_COLOR);
         //-----------------------------------------------------------------------------------------------------
 
         //-Draw the board--------------------------------------------------------------------------------------
-        for (int r = 0; r < BOARD_ROWS; r++) {
-            for (int c = 0; c < BOARD_COLS; c++) {
-                int x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING;
-                int y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING;
-
-                Rectangle tile = {
-                        x_offset,
-                        y_offset,
-                        TILE_SIZE,
-                        TILE_SIZE
-                };
-                Color color = getColor(board[r][c]);
-                DrawRectangleRounded(tile, .05f, 100, color);
-
-                int len = snprintf(NULL, 0, "%d", board[r][c]);
-                char *str = malloc(len + 1);
-                snprintf(str, len + 1, "%d", board[r][c]);
-
-                if (board[r][c] != 0) {
-                    DrawText(str, x_offset + TILE_SIZE / 2, y_offset + TILE_SIZE / 2, TILE_SIZE / 2, BLACK);
+            for (int r = 0; r < BOARD_ROWS; r++) {
+                for (int c = 0; c < BOARD_COLS; c++) {
+                    Rectangle tile = {
+                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING,
+                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING,
+                            TILE_SIZE,
+                            TILE_SIZE
+                    };
+                    Color color = getColor(board[r][c]);
+                    DrawRectangleRounded(tile, .05f, 100, color);
                 }
-
-                free(str);
             }
-        }
+        //-----------------------------------------------------------------------------------------------------
+
+        //-Draw the text---------------------------------------------------------------------------------------
+            for (int r = 0; r < BOARD_ROWS; r++) {
+                for (int c = 0; c < BOARD_COLS; c++) {
+                    int x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING;
+                    int y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING;
+
+                    int len = snprintf(NULL, 0, "%d", board[r][c]);
+                    char str[len + 1];
+                    snprintf(str, len + 1, "%d", board[r][c]);
+
+                    if (board[r][c] != 0) {
+                        DrawText(str, x_offset + TILE_SIZE / 2, y_offset + TILE_SIZE / 2, TILE_SIZE / 2, BLACK);
+                    }
+                }
+            }
         //-----------------------------------------------------------------------------------------------------
 
         EndDrawing();
@@ -80,6 +84,7 @@ int main(void) {
 
     return 0;
 }
+
 
 #pragma clang diagnostic pop
 
@@ -110,7 +115,6 @@ int updateDirection(Direction *direction) {
     int changed = 0;
 
     while ((_direction = GetKeyPressed()) != 0) {
-        printf("%d\n", _direction);
         switch (_direction) {
             case KEY_W:
             case KEY_K:
@@ -159,7 +163,7 @@ void generateNTiles(Board board, int n) {
                 if (board[r][c] != 0) continue;
 
                 if (rn == 1) {
-                    board[r][c] = 2;
+                    board[r][c] = (rand() % 10 != 0) ? 2 : 4;
                     goto cont;
                 } else {
                     rn--;
