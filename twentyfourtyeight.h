@@ -1,11 +1,11 @@
 #ifndef TWENTYFOURTYEIGHT_H
 #define TWENTYFOURTYEIGHT_H
 
-#include <mem.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <minmax.h>
 
 #define SCREEN_HEIGHT 900
 #define SCREEN_WIDTH 600
@@ -21,6 +21,8 @@
 #define TILE_SIZE ((SCREEN_WIDTH - 2 * OUTER_PADDING - (BOARD_COLS - 1) * TILE_PADDING) / (float) BOARD_COLS)
 
 #define BACKGROUND_COLOR ((Color) {187, 173, 160, 255})
+
+#define DARKER_BACKGROUND_COLOR ((Color) {139, 125, 112, 255})
 
 #define BLANK_TILE_COLOR ((Color) {207, 195, 184, 255})
 #define TWO_TILE_COLOR ((Color) {238, 228, 218, 255})
@@ -47,22 +49,24 @@ typedef enum {
 
 typedef int Board[BOARD_ROWS][BOARD_COLS];
 
-int updateDirection(Direction *direction);
-void updateBoard(Board board, Direction direction);
+typedef unsigned long long int Score;
+
+bool updateDirection(Direction *direction);
+void updateBoard(Board board, Direction direction, Score *score);
 
 void generateNTiles(Board board, int n);
 
-void squashUp(Board board);
+void squashUp(Board board, Score *score);
 void dezerofyUp(Board board);
 
-void squashLeft(Board board);
+void squashLeft(Board board, Score *score);
 void dezerofyLeft(Board board);
 
 void flipBoardHorizontal(Board board);
 void flipBoardVertical(Board board);
 
-void squashDown(Board board);
-void squashRight(Board board);
+void squashDown(Board board, Score *score);
+void squashRight(Board board, Score *score);
 
 Color getColor(int tile_value);
 
