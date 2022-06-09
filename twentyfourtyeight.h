@@ -6,6 +6,7 @@
 #include <time.h>
 #include <math.h>
 #include <minmax.h>
+#include <memory.h>
 
 #define SCREEN_HEIGHT 900
 #define SCREEN_WIDTH 600

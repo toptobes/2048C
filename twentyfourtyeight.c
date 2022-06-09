@@ -2,7 +2,6 @@
 #pragma ide diagnostic ignored "cert-msc51-cpp"
 #pragma ide diagnostic ignored "cert-msc50-cpp"
 
-#include <memory.h>
 #include "raylib.h"
 #include "twentyfourtyeight.h"
 
