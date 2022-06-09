@@ -2,6 +2,7 @@
 #pragma ide diagnostic ignored "cert-msc51-cpp"
 #pragma ide diagnostic ignored "cert-msc50-cpp"
 
+#include <memory.h>
 #include "raylib.h"
 #include "twentyfourtyeight.h"
 
@@ -25,10 +26,19 @@ int main(void) {
         Score high_score = 0;
     //---------------------------------------------------------------------------------------------------------
 
+    reset:;
+
     //-Initialize automatic game vars--------------------------------------------------------------------------
         Direction direction = UP;
 
         Board board = {
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}
+        };
+
+        Board prev_board = {
                 {0, 0, 0, 0},
                 {0, 0, 0, 0},
                 {0, 0, 0, 0},
@@ -47,7 +57,7 @@ int main(void) {
     while (!WindowShouldClose()) {
 
         if (updateDirection(&direction)) {
-            updateBoard(board, direction, &score);
+            updateBoard(board, prev_board, direction, &score);
         }
 
         //-Drag window-------------------------------------------------------------------------------------------
@@ -74,7 +84,7 @@ int main(void) {
 
         //-Set the background----------------------------------------------------------------------------------
             ClearBackground(BLANK);
-            Rectangle background_rect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+            Rectangle background_rect = {0, 0, GetScreenWidth(), GetScreenHeight()};
             DrawRectangleRounded(background_rect, .05f, 250, BACKGROUND_COLOR);
         //-----------------------------------------------------------------------------------------------------
 
@@ -99,16 +109,15 @@ int main(void) {
         {
             for (int r = 0; r < BOARD_ROWS; r++) {
                 for (int c = 0; c < BOARD_COLS; c++) {
-                    int tt_x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING;
-                    int tt_y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING;
+                    int tt_x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + TILE_SIZE / 2;
+                    int tt_y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TILE_SIZE / 2 + TOP_PADDING;
 
                     int len = snprintf(NULL, 0, "%d", board[r][c]);
                     char str[len + 1];
                     snprintf(str, len + 1, "%d", board[r][c]);
 
                     if (board[r][c] != 0) {
-                        DrawText(str, tt_x_offset + TILE_SIZE / 2, tt_y_offset + TILE_SIZE / 2, TILE_SIZE / 2.5f,
-                                 BLACK);
+                        DrawText(str, tt_x_offset, tt_y_offset, TILE_SIZE / 2.5f,BLACK);
                     }
                 }
             }
@@ -117,31 +126,33 @@ int main(void) {
 
         //-Render score-----------------------------------------------------------------------------------------
         {
+            const float NUM_FONT_SIZE = TILE_SIZE / 3.5f;
+            const float TEXT_FONT_SIZE = NUM_FONT_SIZE / 1.3f;
+
+            const float RECT_HEIGHT = NUM_FONT_SIZE + TEXT_FONT_SIZE + 2 * TILE_PADDING;
+
             int s_len = snprintf(NULL, 0, "%d", score);
             char s_num[s_len + 1];
             snprintf(s_num, s_len + 1, "%d", score);
 
-            float s_num_font_size = TILE_SIZE / 3.5f;
-            float s_text_font_size = s_num_font_size / 1.3f;
-
-            float s_text_size = MeasureText(s_num, s_text_font_size);
-            float s_num_size = MeasureText("Score:", s_num_font_size );
+            float s_text_size = MeasureText(s_num, TEXT_FONT_SIZE);
+            float s_num_size = MeasureText("Score:", NUM_FONT_SIZE );
             float s_max_size = max(s_text_size, s_num_size);
 
-            int s_pos_x = SCREEN_WIDTH - OUTER_PADDING - s_max_size;
+            int s_pos_x = GetScreenWidth() - OUTER_PADDING - s_max_size;
 
             Rectangle s_rect = {
                     s_pos_x - TILE_PADDING,
                     OUTER_PADDING - TILE_PADDING,
                     s_max_size + 2 * TILE_PADDING,
-                    s_num_font_size + s_text_font_size + 2 * TILE_PADDING
+                    RECT_HEIGHT,
             };
 
             DrawRectangleRounded(s_rect, .1f, 100, DARKER_BACKGROUND_COLOR);
 
-            DrawText("Score:", s_pos_x, OUTER_PADDING, s_text_font_size, BLACK);
+            DrawText("Score:", s_pos_x, OUTER_PADDING, TEXT_FONT_SIZE, BLACK);
 
-            DrawText(s_num, s_pos_x, OUTER_PADDING + s_text_font_size + TILE_PADDING, s_num_font_size, BLACK);
+            DrawText(s_num, s_pos_x, OUTER_PADDING + TEXT_FONT_SIZE + TILE_PADDING, NUM_FONT_SIZE, BLACK);
         //-----------------------------------------------------------------------------------------------------
 
         //-Render high score------------------------------------------------------------------------------------
@@ -149,29 +160,65 @@ int main(void) {
             char hs_num[hs_len + 1];
             snprintf(hs_num, hs_len + 1, "%d", high_score);
 
-            float hs_num_font_size = TILE_SIZE / 3.5f;
-            float hs_text_font_size = hs_num_font_size / 1.3f;
-
-            float hs_text_size = MeasureText(hs_num, hs_text_font_size);
-            float hs_num_size = MeasureText("H. Score:", hs_num_font_size );
+            float hs_text_size = MeasureText(hs_num, TEXT_FONT_SIZE);
+            float hs_num_size = MeasureText("H. Score:", NUM_FONT_SIZE );
             float hs_max_size = max(hs_text_size, hs_num_size);
 
-            int hs_pos_x = SCREEN_WIDTH - OUTER_PADDING - hs_max_size - (SCREEN_WIDTH - s_pos_x) - TILE_PADDING;
+            int hs_pos_x = GetScreenWidth() - OUTER_PADDING - hs_max_size - (GetScreenWidth() - s_pos_x) - TILE_PADDING;
 
             Rectangle hs_rect = {
                     hs_pos_x - TILE_PADDING,
                     OUTER_PADDING - TILE_PADDING,
                     hs_max_size + 2 * TILE_PADDING,
-                    hs_num_font_size + hs_text_font_size + 2 * TILE_PADDING
+                    RECT_HEIGHT,
             };
 
             DrawRectangleRounded(hs_rect, .1f, 100, DARKER_BACKGROUND_COLOR);
 
-            DrawText("H. Score:", hs_pos_x, OUTER_PADDING, hs_text_font_size,  BLACK);
+            DrawText("H. Score:", hs_pos_x, OUTER_PADDING, TEXT_FONT_SIZE, BLACK);
 
-            DrawText(hs_num, hs_pos_x, OUTER_PADDING + hs_text_font_size + TILE_PADDING , hs_num_font_size, BLACK);
+            DrawText(hs_num, hs_pos_x, OUTER_PADDING + TEXT_FONT_SIZE + TILE_PADDING , NUM_FONT_SIZE, BLACK);
+        //-----------------------------------------------------------------------------------------------------
+
+        //-Render 'play again' button---------------------------------
+            float pa_text_size = MeasureText("Play again", TEXT_FONT_SIZE);
+
+            Rectangle pa_rect = {
+                    TILE_PADDING,
+                    TILE_PADDING,
+                    hs_pos_x - 3 * TILE_PADDING,
+                    RECT_HEIGHT,
+            };
+
+            float pa_text_pos_x = TILE_PADDING + (pa_rect.width - pa_text_size) / 2;
+            float pa_text_pos_y = TILE_PADDING + (pa_rect.height - TEXT_FONT_SIZE) / 2;
+
+            DrawRectangleRounded(pa_rect, .1f, 100, ORANGE_COLOR);
+
+            DrawText("Play again", pa_text_pos_x, pa_text_pos_y, TEXT_FONT_SIZE, RAYWHITE);
+
+            if (CheckCollisionPointRec(GetMousePosition(), pa_rect)){
+                if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+                    EndDrawing();
+                    goto reset;
+                }
+            }
+        //-----------------------------------------------------------------------------------------------------
+
+        //-Render big 2048-------------------------------------------------------------------------------------
+            Vector2 _2084_text_size = MeasureTextEx(GetFontDefault(), "2048", TILE_SIZE * 1.1, TILE_SIZE / 2);
+
+            int y = OUTER_PADDING - TILE_PADDING + RECT_HEIGHT;
+
+            Vector2 _2084_pos = {
+                    (GetScreenWidth() - _2084_text_size.x) / 2.0f,
+                    y + 12 + (TOP_PADDING - y - _2084_text_size.y) / 2.0f,
+            };
+
+            DrawTextEx(GetFontDefault(), "2048", _2084_pos, TILE_SIZE * 1.1, TILE_SIZE / 2, BLACK);
         }
         //-----------------------------------------------------------------------------------------------------
+
 
         high_score = max(high_score, score);
 
@@ -185,7 +232,9 @@ int main(void) {
 
 #pragma clang diagnostic pop
 
-void updateBoard(Board board, Direction direction, Score *score) {
+void updateBoard(Board board, Board prev_board, Direction direction, Score *score) {
+    prev_board = memcpy(prev_board, board, 16 * sizeof(int));
+
     switch (direction) {
         case UP:
             squashUp(board, score);
@@ -204,7 +253,7 @@ void updateBoard(Board board, Direction direction, Score *score) {
     }
 
     generateNTiles(board, 1);
-    printBoard(board);
+    printBoard(prev_board);
 }
 
 bool updateDirection(Direction *direction) {

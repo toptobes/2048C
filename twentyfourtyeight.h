@@ -21,8 +21,9 @@
 #define TILE_SIZE ((SCREEN_WIDTH - 2 * OUTER_PADDING - (BOARD_COLS - 1) * TILE_PADDING) / (float) BOARD_COLS)
 
 #define BACKGROUND_COLOR ((Color) {187, 173, 160, 255})
-
 #define DARKER_BACKGROUND_COLOR ((Color) {139, 125, 112, 255})
+
+#define ORANGE_COLOR ((Color) {215, 119, 69, 255})
 
 #define BLANK_TILE_COLOR ((Color) {207, 195, 184, 255})
 #define TWO_TILE_COLOR ((Color) {238, 228, 218, 255})
@@ -52,7 +53,7 @@ typedef int Board[BOARD_ROWS][BOARD_COLS];
 typedef unsigned long long int Score;
 
 bool updateDirection(Direction *direction);
-void updateBoard(Board board, Direction direction, Score *score);
+void updateBoard(Board board, Board prev_board, Direction direction, Score *score);
 
 void generateNTiles(Board board, int n);
 
