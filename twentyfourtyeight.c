@@ -31,8 +31,8 @@ int main(void) {
         Direction direction = UP;
 
         Board board = {
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
+                {0, 0, 2, 0},
+                {0, 0, 2, 0},
                 {0, 0, 0, 0},
                 {0, 0, 0, 0}
         };
@@ -46,10 +46,14 @@ int main(void) {
 
         Score score = 0;
 
+        Animation animations[100];
+        int animation_count = 0;
+
         srand((unsigned) time(NULL));
 
-        generateNTiles(board, 2);
-    //---------------------------------------------------------------------------------------------------------
+//        generateNTiles(board, 2);
+    //--------------------------------
+    // -------------------------------------------------------------------------
 
     printBoard(board);
 
@@ -57,6 +61,8 @@ int main(void) {
 
         if (updateDirection(&direction)) {
             updateBoard(board, prev_board, direction, &score);
+            generateAnimations(board, prev_board, direction, animations, &animation_count);
+//            generateNTiles(board, 1);
         }
 
         //-Drag window-------------------------------------------------------------------------------------------
@@ -98,14 +104,27 @@ int main(void) {
                             TILE_SIZE
                     };
                     Color color = getColor(board[r][c]);
+                    DrawRectangleRounded(tile, .05f, 100, DARKER_BACKGROUND_COLOR);
+                }
+            }
+        //-----------------------------------------------------------------------------------------------------
+
+        //-Render tiles----------------------------------------------------------------------------------------
+            for (int r = 0; r < BOARD_ROWS; r++) {
+                for (int c = 0; c < BOARD_COLS; c++) {
+                    Rectangle tile = {
+                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING,
+                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING,
+                            TILE_SIZE,
+                            TILE_SIZE
+                    };
+                    Color color = getColor(board[r][c]);
                     DrawRectangleRounded(tile, .05f, 100, color);
                 }
             }
-        }
         //-----------------------------------------------------------------------------------------------------
 
         //-Render tile text------------------------------------------------------------------------------------
-        {
             for (int r = 0; r < BOARD_ROWS; r++) {
                 for (int c = 0; c < BOARD_COLS; c++) {
                     int tt_x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + TILE_SIZE / 2;
@@ -251,8 +270,47 @@ void updateBoard(Board board, Board prev_board, Direction direction, Score *scor
             break;
     }
 
-    generateNTiles(board, 1);
     printBoard(prev_board);
+    printBoard(board);
+}
+
+//4 2 2 0 (prev_board)
+//0 0 0 0
+//0 0 8 0
+//0 0 0 0
+//
+//4 4 0 0 (board)
+//0 0 0 0
+//8 0 0 0
+//0 0 0 0
+void generateAnimations(Board board, Board prev_board, Direction direction, Animation *animations, int *animation_count) {
+    for (int r = 0; r < BOARD_ROWS; r++) {
+        for (int c = 0; c < BOARD_COLS; c++) {
+            if (prev_board[r][c] == board[r][c]) continue;
+
+            if (prev_board[r][c] == 0) {
+                BoardPos to = {r, c};
+
+                while (++c < BOARD_COLS && prev_board[r][c] == 0);
+                if (prev_board[r][c] != 0) {
+                    animations[*animation_count] = (Animation){
+                            .type = MOVE,
+                            .from = {r, c},
+                            .to = to,
+                            .percent_done = 0
+                    };
+                    (*animation_count)++;
+                }
+            }
+            
+        }
+    }
+
+    //print out each animation from the array and it's data
+    for (int i = 0; i < *animation_count; i++) {
+        Animation *animation = &animations[i];
+        printf("Type: %d From row: %d From col: %d To row: %d To col: %d\n", animation->type, animation->from.row, animation->from.col, animation->to.row, animation->to.col);
+    }
 }
 
 bool updateDirection(Direction *direction) {

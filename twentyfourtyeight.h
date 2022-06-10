@@ -53,8 +53,25 @@ typedef int Board[BOARD_ROWS][BOARD_COLS];
 
 typedef unsigned long long int Score;
 
+typedef enum {
+    MOVE, COLLISION
+} AnimationType;
+
+typedef struct {
+    int row;
+    int col;
+} BoardPos;
+
+typedef struct {
+    AnimationType type;
+    BoardPos from;
+    BoardPos to;
+    float percent_done;
+} Animation;
+
 bool updateDirection(Direction *direction);
 void updateBoard(Board board, Board prev_board, Direction direction, Score *score);
+void generateAnimations(Board board, Board prev_board, Direction direction, Animation *animations, int *animation_count);
 
 void generateNTiles(Board board, int n);
 
