@@ -16,10 +16,10 @@
 #define OUTER_PADDING 20
 #define TILE_PADDING 10
 
-#define BOARD_ROWS 4
-#define BOARD_COLS 4
+#define BOARD_ROWS 12
+#define BOARD_COLS 12
 
-#define TILE_SIZE ((SCREEN_WIDTH - 2 * OUTER_PADDING - (BOARD_COLS - 1) * TILE_PADDING) / (float) BOARD_COLS)
+#define TILE_SIZE ((SCREEN_WIDTH - 2 * OUTER_PADDING - (BOARD_COLS - 1) * TILE_PADDING) / (float) max(BOARD_COLS, BOARD_ROWS))
 
 #define BACKGROUND_COLOR ((Color) {187, 173, 160, 255})
 #define DARKER_BACKGROUND_COLOR ((Color) {139, 125, 112, 255})
@@ -49,12 +49,10 @@ typedef enum {
     RIGHT
 } Direction;
 
-typedef int Board[BOARD_ROWS][BOARD_COLS];
-
 typedef unsigned long long int Score;
 
 typedef enum {
-    MOVE, COLLISION
+    NONE, MOVE, COLLIDE, APPEAR
 } AnimationType;
 
 typedef struct {
@@ -63,31 +61,43 @@ typedef struct {
 } BoardPos;
 
 typedef struct {
-    AnimationType type;
+    int value;
     BoardPos from;
     BoardPos to;
-    float percent_done;
-} Animation;
+    AnimationType type;
+} TileAnimation;
 
-bool updateDirection(Direction *direction);
-void updateBoard(Board board, Board prev_board, Direction direction, Score *score);
-void generateAnimations(Board board, Board prev_board, Direction direction, Animation *animations, int *animation_count);
+typedef int Board[BOARD_ROWS][BOARD_COLS];
+typedef TileAnimation BoardAnimations[BOARD_ROWS][BOARD_COLS];
 
-void generateNTiles(Board board, int n);
+typedef struct {
+    Board board;
+    BoardAnimations animations;
+    Score score;
+    Direction direction;
+    int moves;
+} GameData;
 
-void squashUp(Board board, Score *score);
-void dezerofyUp(Board board);
+bool updateDirection(GameData *data);
+void updateBoard(GameData *data);
+void generateAnimations(GameData *data);
 
-void squashLeft(Board board, Score *score);
-void dezerofyLeft(Board board);
+void generateNTiles(GameData *data, int n);
 
-void flipBoardHorizontal(Board board);
-void flipBoardVertical(Board board);
+void squashUp(GameData *data);
+void dezerofyUp(GameData *data);
 
-void squashDown(Board board, Score *score);
-void squashRight(Board board, Score *score);
+void squashLeft(GameData *data);
+void dezerofyLeft(GameData *data);
+
+void flipBoardHorizontal(GameData *data);
+void flipBoardVertical(GameData *data);
+
+void squashDown(GameData *data);
+void squashRight(GameData *data);
 
 Color getColor(int tile_value);
 
 void printBoard(Board board);
+void printAnimations(BoardAnimations animations);
 #endif // TWENTYFOURTYEIGHT_H

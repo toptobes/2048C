@@ -19,7 +19,7 @@ int main(void) {
         Vector2 windowPosition = {500, 200};
         Vector2 panOffset = mousePosition;
         bool dragWindow = false;
-    //--------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------
 
     //-Initialize long-lived game vars-------------------------------------------------------------------------
         Score high_score = 0;
@@ -27,42 +27,43 @@ int main(void) {
 
     reset:;
 
-    //-Initialize automatic game vars--------------------------------------------------------------------------
-        Direction direction = UP;
-
-        Board board = {
-                {0, 0, 2, 0},
-                {0, 0, 2, 0},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0}
+    //-Initialize game data------------------------------------------------------------------------------------
+        GameData data = {
+                .board = {
+                        {0, 0, 0, 0},
+                        {0, 0, 0, 0},
+                        {0, 0, 0, 0},
+                        {0, 0, 0, 0},
+                },
+                .direction = UP,
+                .score = 0,
+                .moves = 0,
         };
 
-        Board prev_board = {
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0},
-                {0, 0, 0, 0}
-        };
-
-        Score score = 0;
-
-        Animation animations[100];
-        int animation_count = 0;
+        for (int r = 0; r < BOARD_ROWS; r++) {
+            for (int c = 0; c < BOARD_COLS; c++) {
+//                data.board[r][c] = 0;
+                data.animations[r][c] = (TileAnimation) {
+                        .value = 0,
+                        .from = {r, c},
+                        .to = {r, c},
+                        .type = NONE
+                };
+            }
+        }
 
         srand((unsigned) time(NULL));
 
-//        generateNTiles(board, 2);
-    //--------------------------------
-    // -------------------------------------------------------------------------
+        generateNTiles(&data, 2);
+    //---------------------------------------------------------------------------------------------------------
 
-    printBoard(board);
+    printBoard(data.board);
 
     while (!WindowShouldClose()) {
 
-        if (updateDirection(&direction)) {
-            updateBoard(board, prev_board, direction, &score);
-            generateAnimations(board, prev_board, direction, animations, &animation_count);
-//            generateNTiles(board, 1);
+        if (updateDirection(&data)) {
+            updateBoard(&data);
+            generateNTiles(&data, 1);
         }
 
         //-Drag window-------------------------------------------------------------------------------------------
@@ -95,15 +96,17 @@ int main(void) {
 
         //-Render board----------------------------------------------------------------------------------------
         {
+            int board_x_offset = (GetScreenWidth() - OUTER_PADDING * 2 - BOARD_COLS * TILE_SIZE - (BOARD_COLS - 1) * TILE_PADDING) / 2;
+            int board_y_offset = (GetScreenHeight() - TOP_PADDING - OUTER_PADDING * 2 - BOARD_ROWS * TILE_SIZE - (BOARD_ROWS - 1) * TILE_PADDING) / 2;
+
             for (int r = 0; r < BOARD_ROWS; r++) {
                 for (int c = 0; c < BOARD_COLS; c++) {
                     Rectangle tile = {
-                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING,
-                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING,
+                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + board_x_offset,
+                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING + board_y_offset,
                             TILE_SIZE,
                             TILE_SIZE
                     };
-                    Color color = getColor(board[r][c]);
                     DrawRectangleRounded(tile, .05f, 100, DARKER_BACKGROUND_COLOR);
                 }
             }
@@ -113,12 +116,12 @@ int main(void) {
             for (int r = 0; r < BOARD_ROWS; r++) {
                 for (int c = 0; c < BOARD_COLS; c++) {
                     Rectangle tile = {
-                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING,
-                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING,
+                            OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + board_x_offset,
+                            OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TOP_PADDING + board_y_offset,
                             TILE_SIZE,
                             TILE_SIZE
                     };
-                    Color color = getColor(board[r][c]);
+                    Color color = getColor(data.board[r][c]);
                     DrawRectangleRounded(tile, .05f, 100, color);
                 }
             }
@@ -127,14 +130,14 @@ int main(void) {
         //-Render tile text------------------------------------------------------------------------------------
             for (int r = 0; r < BOARD_ROWS; r++) {
                 for (int c = 0; c < BOARD_COLS; c++) {
-                    int tt_x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + TILE_SIZE / 2;
-                    int tt_y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TILE_SIZE / 2 + TOP_PADDING;
+                    int tt_x_offset = OUTER_PADDING + c * TILE_SIZE + c * TILE_PADDING + TILE_SIZE / 2 + board_x_offset;
+                    int tt_y_offset = OUTER_PADDING + r * TILE_SIZE + r * TILE_PADDING + TILE_SIZE / 2 + TOP_PADDING + board_y_offset;
 
-                    int len = snprintf(NULL, 0, "%d", board[r][c]);
+                    int len = snprintf(NULL, 0, "%d", data.board[r][c]);
                     char str[len + 1];
-                    snprintf(str, len + 1, "%d", board[r][c]);
+                    snprintf(str, len + 1, "%d", data.board[r][c]);
 
-                    if (board[r][c] != 0) {
+                    if (data.board[r][c] != 0) {
                         DrawText(str, tt_x_offset, tt_y_offset, TILE_SIZE / 2.5f,BLACK);
                     }
                 }
@@ -149,9 +152,9 @@ int main(void) {
 
             const float RECT_HEIGHT = NUM_FONT_SIZE + TEXT_FONT_SIZE + 2 * TILE_PADDING;
 
-            int s_len = snprintf(NULL, 0, "%d", score);
+            int s_len = snprintf(NULL, 0, "%d", data.score);
             char s_num[s_len + 1];
-            snprintf(s_num, s_len + 1, "%d", score);
+            snprintf(s_num, s_len + 1, "%d", data.score);
 
             float s_text_size = MeasureText(s_num, TEXT_FONT_SIZE);
             float s_num_size = MeasureText("Score:", NUM_FONT_SIZE );
@@ -238,7 +241,7 @@ int main(void) {
         //-----------------------------------------------------------------------------------------------------
 
 
-        high_score = max(high_score, score);
+        high_score = max(high_score, data.score);
 
         EndDrawing();
     }
@@ -250,70 +253,28 @@ int main(void) {
 
 #pragma clang diagnostic pop
 
-void updateBoard(Board board, Board prev_board, Direction direction, Score *score) {
-    prev_board = memcpy(prev_board, board, 16 * sizeof(int));
-
-    switch (direction) {
+void updateBoard(GameData *data) {
+    switch (data->direction) {
         case UP:
-            squashUp(board, score);
+            squashUp(data);
             break;
         case DOWN:
-            squashDown(board, score);
+            squashDown(data);
             break;
         case LEFT:
-            squashLeft(board, score);
+            squashLeft(data);
             break;
         case RIGHT:
-            squashRight(board, score);
+            squashRight(data);
             break;
         default:
             break;
     }
 
-    printBoard(prev_board);
-    printBoard(board);
+    printBoard(data->board);
 }
 
-//4 2 2 0 (prev_board)
-//0 0 0 0
-//0 0 8 0
-//0 0 0 0
-//
-//4 4 0 0 (board)
-//0 0 0 0
-//8 0 0 0
-//0 0 0 0
-void generateAnimations(Board board, Board prev_board, Direction direction, Animation *animations, int *animation_count) {
-    for (int r = 0; r < BOARD_ROWS; r++) {
-        for (int c = 0; c < BOARD_COLS; c++) {
-            if (prev_board[r][c] == board[r][c]) continue;
-
-            if (prev_board[r][c] == 0) {
-                BoardPos to = {r, c};
-
-                while (++c < BOARD_COLS && prev_board[r][c] == 0);
-                if (prev_board[r][c] != 0) {
-                    animations[*animation_count] = (Animation){
-                            .type = MOVE,
-                            .from = {r, c},
-                            .to = to,
-                            .percent_done = 0
-                    };
-                    (*animation_count)++;
-                }
-            }
-            
-        }
-    }
-
-    //print out each animation from the array and it's data
-    for (int i = 0; i < *animation_count; i++) {
-        Animation *animation = &animations[i];
-        printf("Type: %d From row: %d From col: %d To row: %d To col: %d\n", animation->type, animation->from.row, animation->from.col, animation->to.row, animation->to.col);
-    }
-}
-
-bool updateDirection(Direction *direction) {
+bool updateDirection(GameData *data) {
     int _direction;
     bool changed = false;
 
@@ -322,25 +283,25 @@ bool updateDirection(Direction *direction) {
             case KEY_W:
             case KEY_K:
             case KEY_UP:
-                *direction = UP;
+                data->direction = UP;
                 changed = true;
                 break;
             case KEY_A:
             case KEY_H:
             case KEY_LEFT:
-                *direction = LEFT;
+                data->direction = LEFT;
                 changed = true;
                 break;
             case KEY_S:
             case KEY_J:
             case KEY_DOWN:
-                *direction = DOWN;
+                data->direction = DOWN;
                 changed = true;
                 break;
             case KEY_D:
             case KEY_L:
             case KEY_RIGHT:
-                *direction = RIGHT;
+                data->direction = RIGHT;
                 changed = true;
                 break;
             default:
@@ -351,11 +312,11 @@ bool updateDirection(Direction *direction) {
     return changed;
 }
 
-void generateNTiles(Board board, int n) {
+void generateNTiles(GameData *data, int n) {
     for (int i = 0, e = 0; i < n; i++, e = 0) {
         for (int r = 0; r < BOARD_ROWS; r++) {
             for (int c = 0; c < BOARD_COLS; c++) {
-                if (board[r][c] == 0) e++;
+                if (data->board[r][c] == 0) e++;
             }
         }
 
@@ -363,10 +324,10 @@ void generateNTiles(Board board, int n) {
 
         for (int r = 0; r < BOARD_ROWS; r++) {
             for (int c = 0; c < BOARD_COLS; c++) {
-                if (board[r][c] != 0) continue;
+                if (data->board[r][c] != 0) continue;
 
                 if (rn == 1) {
-                    board[r][c] = (rand() % 10 != 0) ? 2 : 4;
+                    data->board[r][c] = (rand() % 10 != 0) ? 2 : 4;
                     goto cont;
                 } else {
                     rn--;
@@ -377,80 +338,83 @@ void generateNTiles(Board board, int n) {
     }
 }
 
-void squashUp(Board board, Score *score) {
-    dezerofyUp(board);
+void squashUp(GameData *data) {
+    dezerofyUp(data);
 
     for (int c = 0; c < BOARD_COLS; c++) {
         for (int r = BOARD_ROWS - 1; r > 0; r--) {
-            if (board[r - 1][c] == board[r][c]) {
-                board[r - 1][c] += board[r][c];
-                *score += board[r - 1][c];
-                board[r--][c] = 0;
+            if (data->board[r - 1][c] == data->board[r][c]) {
+                data->board[r - 1][c] += data->board[r][c];
+                data->score += data->board[r - 1][c];
+                data->board[r--][c] = 0;
             }
         }
     }
-    dezerofyUp(board);
+    dezerofyUp(data);
 }
 
-void dezerofyUp(Board board) {
+void dezerofyUp(GameData *data) {
     for (int c = 0; c < BOARD_COLS; c++) {
         int i = 0;
         for (int r = 0; r < BOARD_ROWS; r++) {
-            if (board[r][c] != 0) board[i++][c] = board[r][c];
+            if (data->board[r][c] != 0) data->board[i++][c] = data->board[r][c];
         }
-        while (i < BOARD_ROWS) board[i++][c] = 0;
+        while (i < BOARD_ROWS) data->board[i++][c] = 0;
     }
 }
 
-void squashLeft(Board board, Score *score) {
-    dezerofyLeft(board);
+void squashLeft(GameData *data) {
+    dezerofyLeft(data);
 
     for (int r = 0; r < BOARD_ROWS; r++) {
         for (int c = BOARD_COLS - 1; c > 0; c--) {
-            if (board[r][c - 1] == board[r][c]) {
-                board[r][c - 1] += board[r][c];
-                *score += board[r][c - 1];
-                board[r][c] = 0;
+            if (data->board[r][c - 1] == data->board[r][c]) {
+                data->board[r][c - 1] += data->board[r][c];
+                data->board[r][c] = 0;
+                data->score += data->board[r][c - 1];
             }
         }
     }
-    dezerofyLeft(board);
+    dezerofyLeft(data);
+    printAnimations(data->animations);
 }
 
-void dezerofyLeft(Board board) {
+void dezerofyLeft(GameData *data) {
     for (int r = 0; r < BOARD_ROWS; r++) {
         int i = 0;
         for (int c = 0; c < BOARD_COLS; c++) {
-            if (board[r][c] != 0) board[r][i++] = board[r][c];
+            if (data->board[r][c] != 0) {
+                data->board[r][i++] = data->board[r][c];
+            }
         }
-        while (i < BOARD_COLS) board[r][i++] = 0;
+        while (i < BOARD_COLS) data->board[r][i++] = 0;
     }
 }
 
-void squashRight(Board board, Score *score) {
-    flipBoardHorizontal(board);
-    squashLeft(board, score);
-    flipBoardHorizontal(board);
+void squashRight(GameData *data) {
+    flipBoardHorizontal(data);
+    squashLeft(data);
+    flipBoardHorizontal(data);
 }
 
-void squashDown(Board board, Score *score) {
-    flipBoardVertical(board);
-    squashUp(board, score);
-    flipBoardVertical(board);
+void squashDown(GameData *data) {
+    flipBoardVertical(data);
+    squashUp(data);
+    flipBoardVertical(data);
 }
 
-void flipBoardHorizontal(Board board) {
+void flipBoardHorizontal(GameData *data) {
     for (int r = 0; r < BOARD_ROWS; r++) {
         for (int c = 0; c < BOARD_COLS / 2; c++) {
-            SWAP(board[r][c], board[r][BOARD_COLS - c - 1])
+            SWAP(data->board[r][c], data->board[r][BOARD_COLS - c - 1])
         }
     }
 }
 
-void flipBoardVertical(Board board) {
+void flipBoardVertical(GameData *data) {
     for (int r = 0; r < BOARD_ROWS / 2; r++) {
         for (int c = 0; c < BOARD_COLS; c++) {
-            SWAP(board[r][c], board[BOARD_ROWS - 1 - r][c])
+            SWAP(data->board[r][c], data->board[BOARD_ROWS - 1 - r][c])
         }
     }
 }
@@ -494,6 +458,16 @@ void printBoard(Board board) {
         printf("\n");
     }
     printf("\n");
+}
+
+void printAnimations(BoardAnimations animations) {
+    for (int r = 0; r < BOARD_ROWS; r++) {
+        for (int c = 0; c < BOARD_COLS; c++) {
+            printf("From row: %d From col: %d To row: %d To col: %d\n", animations[r][c].from.row,
+                   animations[r][c].from.col, animations[r][c].to.row, animations[r][c].to.col);
+        }
+        printf("\n");
+    }
 }
 
 #pragma clang diagnostic pop
